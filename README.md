@@ -2,6 +2,8 @@
 
 Aplicação web estática para leitura operacional de OS futuras da Arcode a partir de uma planilha pública do Google Sheets. O foco é oferecer uma visão executiva e operacional com calendário mensal, lista cronológica de jobs e painel de detalhes, sem formulários de entrada e sem backend.
 
+Atualização de publicação para acionar o deploy do GitHub Pages.
+
 ## Estrutura de arquivos
 
 ```text
