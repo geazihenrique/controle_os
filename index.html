@@ -1,24 +1,171 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Controle_OS_Arc</title>
-  <meta name="description" content="Ambiente inicial do projeto Controle_OS_Arc." />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <main class="container">
-    <span class="tag">Controle_OS_Arc</span>
-    <h1>Ambiente pronto para upload do site</h1>
-    <p>
-      Este repositório foi preparado como base inicial para publicação de um site estático.
-      Agora você pode substituir este conteúdo pelos arquivos do seu projeto.
-    </p>
-    <div class="card">
-      <strong>Próximos passos</strong>
-      <p>Envie seus arquivos HTML, CSS, JS e assets para este repositório.</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Controle Geral | Arcode</title>
+    <meta
+      name="description"
+      content="Dashboard operacional de leitura para acompanhamento de OS futuras da Arcode."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="./assets/icon-a.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block" aria-label="Arcode Controle Geral">
+          <img class="brand-icon" src="./assets/icon-a.png" alt="Ícone Arcode" />
+          <img class="brand-logo" src="./assets/logo-full.png" alt="Logo Arcode" />
+        </div>
+        <div class="title-block">
+          <p class="eyebrow">Arcode</p>
+          <h1>Controle Geral</h1>
+        </div>
+      </header>
+
+      <main class="dashboard-layout">
+        <div class="dashboard-main">
+          <section class="panel calendar-panel" aria-labelledby="calendar-title">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">Agenda mensal</p>
+                <h2 id="calendar-title">Calendário operacional</h2>
+              </div>
+              <div class="calendar-nav" aria-label="Navegação mensal">
+                <button id="prev-month" class="ghost-button" type="button">Anterior</button>
+                <p id="calendar-label" class="calendar-label" aria-live="polite"></p>
+                <button id="next-month" class="ghost-button" type="button">Próximo</button>
+              </div>
+            </div>
+
+            <div id="calendar-loading" class="loading-inline">Carregando calendário...</div>
+            <div class="calendar-grid" id="calendar-grid" aria-live="polite"></div>
+          </section>
+
+          <section class="panel filters-panel" aria-labelledby="filters-title">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">Leitura rápida</p>
+                <h2 id="filters-title">Filtros</h2>
+              </div>
+              <button id="refresh-data" class="ghost-button" type="button">Atualizar dados</button>
+            </div>
+
+            <div class="filters-grid">
+              <label class="field">
+                <span>Buscar</span>
+                <input
+                  id="search-input"
+                  type="search"
+                  placeholder="OS, cliente ou descrição"
+                  autocomplete="off"
+                />
+              </label>
+
+              <label class="field">
+                <span>Responsável</span>
+                <select id="responsible-filter">
+                  <option value="">Todos</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Status</span>
+                <select id="status-filter">
+                  <option value="">Todos</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Tipo de serviço</span>
+                <select id="service-type-filter">
+                  <option value="">Todos</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Período</span>
+                <select id="period-filter">
+                  <option value="all">Todos os próximos</option>
+                  <option value="30">Próximos 30 dias</option>
+                  <option value="60">Próximos 60 dias</option>
+                  <option value="90">Próximos 90 dias</option>
+                  <option value="month">Mês em exibição</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="panel list-panel" aria-labelledby="list-title">
+            <div class="panel-head compact">
+              <div>
+                <p class="section-kicker">Operação</p>
+                <h2 id="list-title">Próximas OS</h2>
+              </div>
+              <p id="results-count" class="results-count" aria-live="polite"></p>
+            </div>
+
+            <div id="list-loading" class="loading-inline">Carregando OS...</div>
+            <div id="empty-state" class="empty-state" hidden>
+              <h3>Nenhuma OS encontrada</h3>
+              <p>Ajuste os filtros ou atualize os dados para tentar novamente.</p>
+            </div>
+            <div id="os-list" class="os-list" role="listbox" aria-label="Lista de ordens de serviço"></div>
+          </section>
+        </div>
+
+        <aside class="panel detail-panel" aria-labelledby="detail-title">
+          <div class="panel-head compact detail-head">
+            <div>
+              <p class="section-kicker">Detalhes</p>
+              <h2 id="detail-title">OS selecionada</h2>
+            </div>
+            <div id="detail-date-chip" class="detail-date-chip"></div>
+          </div>
+
+          <div id="detail-empty" class="detail-empty">
+            <img src="./assets/icon-a.png" alt="Ícone Arcode" />
+            <p>Selecione uma OS no calendário ou na lista para ver os detalhes.</p>
+          </div>
+
+          <div id="detail-content" class="detail-content" hidden></div>
+        </aside>
+      </main>
     </div>
-  </main>
-</body>
+
+    <template id="detail-template">
+      <article class="detail-card">
+        <div class="detail-topline">
+          <div>
+            <p class="detail-label">OS</p>
+            <h3 data-detail="os"></h3>
+          </div>
+          <div class="detail-badges" data-detail="badges"></div>
+        </div>
+
+        <div class="detail-section">
+          <p class="detail-label">Cliente</p>
+          <p data-detail="client"></p>
+        </div>
+
+        <div class="detail-section">
+          <p class="detail-label">Descrição completa</p>
+          <p data-detail="description"></p>
+        </div>
+
+        <div class="alert-block" data-detail="conflict-block" hidden></div>
+
+        <dl class="detail-grid"></dl>
+      </article>
+    </template>
+
+    <script type="module" src="./app.js"></script>
+  </body>
 </html>
