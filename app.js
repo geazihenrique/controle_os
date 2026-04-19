@@ -28,6 +28,7 @@ const state = {
 };
 
 const elements = {
+  topbar: document.getElementById('topbar'),
   calendarGrid: document.getElementById('calendar-grid'),
   calendarLabel: document.getElementById('calendar-label'),
   prevMonth: document.getElementById('prev-month'),
@@ -52,6 +53,7 @@ init();
 
 async function init() {
   wireEvents();
+  syncTopbarState();
   await loadDashboard({ isInitialLoad: true });
   window.setInterval(() => {
     loadDashboard({ preserveMonth: true, backgroundRefresh: true });
@@ -59,6 +61,8 @@ async function init() {
 }
 
 function wireEvents() {
+  window.addEventListener('scroll', syncTopbarState, { passive: true });
+
   elements.prevMonth.addEventListener('click', () => {
     state.currentMonth = addMonths(state.currentMonth, -1);
     applyFilters();
@@ -93,6 +97,10 @@ function wireEvents() {
       applyFilters();
     });
   });
+}
+
+function syncTopbarState() {
+  elements.topbar.classList.toggle('is-scrolled', window.scrollY > 24);
 }
 
 async function loadDashboard(options = {}) {
