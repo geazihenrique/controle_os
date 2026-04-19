@@ -21,7 +21,6 @@ const state = {
     responsible: '',
     status: '',
     serviceType: '',
-    period: 'all',
   },
   selectedJobId: '',
   currentMonth: startOfMonth(new Date()),
@@ -38,7 +37,6 @@ const elements = {
   responsibleFilter: document.getElementById('responsible-filter'),
   statusFilter: document.getElementById('status-filter'),
   serviceTypeFilter: document.getElementById('service-type-filter'),
-  periodFilter: document.getElementById('period-filter'),
   lastUpdated: document.getElementById('last-updated'),
   osList: document.getElementById('os-list'),
   resultsCount: document.getElementById('results-count'),
@@ -63,18 +61,12 @@ async function init() {
 function wireEvents() {
   elements.prevMonth.addEventListener('click', () => {
     state.currentMonth = addMonths(state.currentMonth, -1);
-    renderCalendar();
-    if (state.filters.period === 'month') {
-      applyFilters();
-    }
+    applyFilters();
   });
 
   elements.nextMonth.addEventListener('click', () => {
     state.currentMonth = addMonths(state.currentMonth, 1);
-    renderCalendar();
-    if (state.filters.period === 'month') {
-      applyFilters();
-    }
+    applyFilters();
   });
 
   elements.searchButton.addEventListener('click', () => {
@@ -95,7 +87,6 @@ function wireEvents() {
     ['responsibleFilter', 'responsible'],
     ['statusFilter', 'status'],
     ['serviceTypeFilter', 'serviceType'],
-    ['periodFilter', 'period'],
   ].forEach(([elementKey, filterKey]) => {
     elements[elementKey].addEventListener('change', (event) => {
       state.filters[filterKey] = event.target.value;
@@ -189,18 +180,14 @@ function formatLastUpdatedLabel(date) {
 }
 
 function applyFilters() {
-  const now = new Date();
-  now.setHours(12, 0, 0, 0);
-
   state.calendarJobs = state.jobs.filter((job) => {
     const matchesResponsible =
       !state.filters.responsible || job.responsible === state.filters.responsible;
     const matchesStatus = !state.filters.status || job.status === state.filters.status;
     const matchesServiceType =
       !state.filters.serviceType || job.serviceType === state.filters.serviceType;
-    const matchesPeriod = matchPeriod(job.effectiveDate, state.filters.period, now);
 
-    return matchesResponsible && matchesStatus && matchesServiceType && matchesPeriod;
+    return matchesResponsible && matchesStatus && matchesServiceType;
   });
 
   state.listJobs = filterListJobsBySearch(state.calendarJobs, state.filters.search);
@@ -220,28 +207,6 @@ function filterListJobsBySearch(jobs, searchValue) {
   return jobs.filter((job) =>
     [job.os, job.client, job.description].some((field) => slugify(field).includes(searchTerm)),
   );
-}
-
-function matchPeriod(date, period, now) {
-  if (period === 'all') {
-    return true;
-  }
-
-  if (period === 'month') {
-    return (
-      date.getMonth() === state.currentMonth.getMonth() &&
-      date.getFullYear() === state.currentMonth.getFullYear()
-    );
-  }
-
-  const days = Number(period);
-  if (Number.isNaN(days)) {
-    return true;
-  }
-
-  const maxDate = new Date(now);
-  maxDate.setDate(maxDate.getDate() + days);
-  return date >= now && date <= maxDate;
 }
 
 function syncSelection() {
