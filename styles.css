@@ -72,10 +72,17 @@ img {
   box-shadow: var(--shadow);
 }
 
+.topbar-branding {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
 .brand-block {
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
 }
 
 .brand-icon {
@@ -167,6 +174,11 @@ img {
   margin-top: 6px;
   font-size: 0.88rem;
   font-weight: 600;
+}
+
+.topbar-updated {
+  margin-top: 0;
+  padding-left: 74px;
 }
 
 .detail-date-chip {
@@ -304,13 +316,15 @@ img {
 
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: minmax(260px, 1.3fr) repeat(4, minmax(180px, 1fr));
   gap: 14px;
+  align-items: end;
 }
 
 .field {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .field span {
@@ -321,12 +335,17 @@ img {
 
 .field input,
 .field select {
+  width: 100%;
   min-height: 48px;
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: #fff;
   color: var(--text);
+}
+
+.field-search {
+  min-width: 0;
 }
 
 .field input:focus,
@@ -547,6 +566,10 @@ img {
 
   .title-block {
     text-align: left;
+  }
+
+  .topbar-updated {
+    padding-left: 0;
   }
 
   .filters-grid,

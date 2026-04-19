@@ -20,9 +20,12 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <div class="brand-block" aria-label="Arcode Controle Geral">
-          <img class="brand-icon" src="./assets/icon-a.png" alt="Ícone Arcode" />
-          <img class="brand-logo" src="./assets/logo-full.png" alt="Logo Arcode" />
+        <div class="topbar-branding">
+          <div class="brand-block" aria-label="Arcode Controle Geral">
+            <img class="brand-icon" src="./assets/icon-a.png" alt="Ícone Arcode" />
+            <img class="brand-logo" src="./assets/logo-full.png" alt="Logo Arcode" />
+          </div>
+          <p id="last-updated" class="last-updated topbar-updated" aria-live="polite"></p>
         </div>
         <div class="title-block">
           <p class="eyebrow">Arcode</p>
@@ -54,13 +57,12 @@
               <div>
                 <p class="section-kicker">Leitura rápida</p>
                 <h2 id="filters-title">Filtros</h2>
-                <p id="last-updated" class="last-updated" aria-live="polite"></p>
               </div>
               <button id="refresh-data" class="ghost-button" type="button">Atualizar dados</button>
             </div>
 
             <div class="filters-grid">
-              <label class="field">
+              <label class="field field-search">
                 <span>Buscar</span>
                 <input
                   id="search-input"
