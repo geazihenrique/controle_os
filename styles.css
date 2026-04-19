@@ -30,6 +30,7 @@ html {
 body {
   margin: 0;
   font-family: 'Nunito Sans', sans-serif;
+  line-height: 1.45;
   color: var(--text);
   background:
     radial-gradient(circle at top left, rgba(110, 33, 215, 0.08), transparent 28%),
@@ -125,9 +126,15 @@ img {
 
 .dashboard-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
   gap: 24px;
   align-items: start;
+  width: 100%;
+}
+
+.dashboard-layout > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .dashboard-main {
@@ -149,6 +156,8 @@ img {
 .calendar-panel,
 .detail-panel {
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 .panel-head {
@@ -198,7 +207,9 @@ img {
   padding: 10px 12px;
   border-radius: 999px;
   background: var(--surface-alt);
-  text-transform: capitalize;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .ghost-button {
@@ -319,6 +330,7 @@ img {
   font-size: 0.84rem;
   line-height: 1.25;
   color: var(--text);
+  overflow-wrap: anywhere;
 }
 
 .calendar-more {
@@ -408,6 +420,8 @@ img {
 .os-card h3 {
   margin: 0;
   font-size: 1.18rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .card-date-block {
@@ -433,6 +447,7 @@ img {
   margin: 14px 0;
   color: #40364f;
   line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .badge-row,
@@ -496,6 +511,7 @@ img {
   font-weight: 700;
   line-height: 1.45;
   color: #3d344d;
+  overflow-wrap: anywhere;
 }
 
 .conflict-inline {
@@ -515,6 +531,7 @@ img {
   width: 100%;
   max-width: 100%;
   overflow: hidden;
+  justify-self: stretch;
 }
 
 .detail-content,
@@ -527,8 +544,21 @@ img {
   max-width: 100%;
 }
 
+.detail-card {
+  display: grid;
+  gap: 18px;
+}
+
+.detail-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
 .detail-date-chip {
   max-width: 100%;
+  justify-self: start;
 }
 
 .detail-topline {
@@ -536,31 +566,36 @@ img {
   align-items: start;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
 }
 
 .detail-topline h3 {
   margin: 6px 0 0;
   font-size: 1.5rem;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
 }
 
 .detail-section {
-  margin-top: 18px;
+  display: grid;
+  gap: 8px;
 }
 
 .detail-section p:last-child {
-  margin: 8px 0 0;
+  margin: 0;
   line-height: 1.6;
   white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .alert-block {
   display: grid;
   gap: 6px;
-  margin-top: 18px;
   padding: 16px;
   border-radius: 18px;
   background: var(--danger-soft);
   color: #8a2f21;
+  line-height: 1.55;
 }
 
 @media (max-width: 1100px) {

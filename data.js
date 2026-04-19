@@ -40,7 +40,7 @@ export async function fetchJobs() {
   });
 
   if (!response.ok) {
-    throw new Error('Nao foi possivel carregar a planilha publica.');
+    throw new Error('Não foi possível carregar a planilha pública.');
   }
 
   const csvText = await response.text();
@@ -50,7 +50,7 @@ export async function fetchJobs() {
   );
 
   if (headerIndex === -1) {
-    throw new Error('Cabecalho da planilha nao encontrado.');
+    throw new Error('Cabeçalho da planilha não encontrado.');
   }
 
   const normalizedJobs = rows
@@ -102,19 +102,19 @@ function normalizeRow(row, sourceLine) {
     return null;
   }
 
-  const client = cleanText(row[COLUMN_INDEX.client]) || 'Cliente nao informado';
-  const description = cleanMultilineText(row[COLUMN_INDEX.description]) || 'Descricao nao informada';
-  const serviceType = cleanText(row[COLUMN_INDEX.serviceType]) || 'Nao informado';
-  const status = cleanText(row[COLUMN_INDEX.status]) || 'Nao informado';
-  const logistics = cleanText(row[COLUMN_INDEX.logistics]) || 'Nao informado';
+  const client = cleanText(row[COLUMN_INDEX.client]) || 'Cliente não informado';
+  const description = cleanMultilineText(row[COLUMN_INDEX.description]) || 'Descrição não informada';
+  const serviceType = cleanText(row[COLUMN_INDEX.serviceType]) || 'Não informado';
+  const status = cleanText(row[COLUMN_INDEX.status]) || 'Não informado';
+  const logistics = cleanText(row[COLUMN_INDEX.logistics]) || 'Não informado';
   const producer = cleanText(row[COLUMN_INDEX.producer]);
   const salesperson = cleanText(row[COLUMN_INDEX.salesperson]);
-  const responsible = producer || salesperson || 'Nao informado';
+  const responsible = producer || salesperson || 'Não informado';
   const observations = cleanMultilineText(row[COLUMN_INDEX.observations]);
   const installers = splitNames(row[COLUMN_INDEX.collaborators]);
   const installationDate = parseDateBR(row[COLUMN_INDEX.installationDate]);
   const installedBy = cleanText(row[COLUMN_INDEX.installedBy]);
-  const location = extractLocation(observations, description) || 'Nao identificado';
+  const location = extractLocation(observations, description) || 'Não identificado';
 
   return {
     id: `${os}-${sourceLine}`,
@@ -141,7 +141,7 @@ function normalizeRow(row, sourceLine) {
     sourceLine,
     displayDateLabel: formatDate(effectiveDate),
     deliveryDateLabel: deliveryDate ? formatDate(deliveryDate) : 'A definir',
-    installationDateLabel: installationDate ? formatDate(installationDate) : 'Nao informada',
+    installationDateLabel: installationDate ? formatDate(installationDate) : 'Não informada',
     conflictEntries: [],
     hasConflict: false,
   };

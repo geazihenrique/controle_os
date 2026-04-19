@@ -221,12 +221,13 @@ export function formatDateLong(date) {
   if (!(date instanceof Date)) {
     return '-';
   }
-  return new Intl.DateTimeFormat('pt-BR', {
+  const formatted = new Intl.DateTimeFormat('pt-BR', {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
     year: 'numeric',
   }).format(date);
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
 export function toDateKey(date) {

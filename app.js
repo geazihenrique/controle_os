@@ -366,7 +366,7 @@ function renderList() {
 }
 
 function buildCardMarkup(job) {
-  const installers = job.installers.length > 0 ? job.installers.join(', ') : 'Nao informado';
+  const installers = job.installers.length > 0 ? job.installers.join(', ') : 'Não informado';
   const conflictHtml = job.hasConflict
     ? `<span class="badge badge-danger">Conflito de instalador</span>`
     : '';
@@ -382,7 +382,7 @@ function buildCardMarkup(job) {
       </div>
       <div class="card-date-block">
         <strong>${escapeHtml(job.displayDateLabel)}</strong>
-        <span>${job.usesFallbackDate ? 'Data de aprovacao' : 'Data de entrega'}</span>
+        <span>${job.usesFallbackDate ? 'Data de aprovação' : 'Data de entrega'}</span>
       </div>
     </div>
 
@@ -441,7 +441,6 @@ function renderDetail() {
   const card = fragment.querySelector('.detail-card');
   const grid = fragment.querySelector('.detail-grid');
   const badges = fragment.querySelector('[data-detail="badges"]');
-  const conflictBlock = fragment.querySelector('[data-detail="conflict-block"]');
 
   fragment.querySelector('[data-detail="os"]').textContent = `OS ${job.os}`;
   fragment.querySelector('[data-detail="client"]').textContent = job.client;
@@ -452,23 +451,25 @@ function renderDetail() {
   }
   if (job.hasConflict) {
     badges.append(buildBadge('Conflito de instalador', 'danger'));
-    conflictBlock.hidden = false;
+    const conflictBlock = document.createElement('div');
+    conflictBlock.className = 'alert-block';
     conflictBlock.innerHTML = `<strong>Atenção operacional.</strong><span>${escapeHtml(
       formatConflictSummary(job),
     )}</span>`;
+    card.insertBefore(conflictBlock, grid);
   }
 
   const detailFields = [
     ['Status', job.status],
     ['Tipo de serviço', job.serviceType],
     ['Responsável', job.responsible],
-    ['Vendedor / atendimento', job.salesperson || 'Nao informado'],
+    ['Vendedor / atendimento', job.salesperson || 'Não informado'],
     ['Logística', job.logistics],
     ['Local', job.location],
     ['Data de entrega', job.deliveryDateLabel],
     ['Data de instalação', job.installationDateLabel],
-    ['Instaladores', job.installers.join(', ') || 'Nao informado'],
-    ['Instalado por', job.installedBy || 'Nao informado'],
+    ['Instaladores', job.installers.join(', ') || 'Não informado'],
+    ['Instalado por', job.installedBy || 'Não informado'],
     ['Observações gerenciais', job.observations || 'Sem observações'],
   ];
 
