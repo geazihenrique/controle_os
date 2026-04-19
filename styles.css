@@ -133,6 +133,7 @@ img {
 .dashboard-main {
   display: grid;
   gap: 20px;
+  min-width: 0;
 }
 
 .panel {
@@ -141,6 +142,11 @@ img {
   border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: var(--shadow);
+}
+
+.calendar-panel,
+.detail-panel {
+  min-width: 0;
 }
 
 .panel-head {
@@ -531,7 +537,7 @@ img {
   color: #8a2f21;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1280px) {
   .dashboard-layout {
     grid-template-columns: 1fr;
   }
