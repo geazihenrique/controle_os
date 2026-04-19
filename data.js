@@ -14,6 +14,7 @@ import {
 const SHEET_ID = '1ul3w4dGk218jWlteoto9fFROzZT9r05NE3Fcy2fG77Q';
 const SHEET_GID = '241851784';
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+const MIN_OS_NUMBER = 3053;
 
 const COLUMN_INDEX = {
   os: 0,
@@ -56,7 +57,7 @@ export async function fetchJobs() {
     .slice(headerIndex + 1)
     .map((row, rowIndex) => normalizeRow(row, rowIndex + headerIndex + 2))
     .filter(Boolean)
-    .filter((job) => job.effectiveDate && job.effectiveDate.getFullYear() >= 2026)
+    .filter((job) => job.osNumber >= MIN_OS_NUMBER)
     .sort((left, right) => {
       const dateDifference = left.effectiveDate - right.effectiveDate;
       if (dateDifference !== 0) {
@@ -87,6 +88,11 @@ function normalizeRow(row, sourceLine) {
     return null;
   }
 
+  const osNumber = Number.parseInt(os, 10);
+  if (Number.isNaN(osNumber)) {
+    return null;
+  }
+
   // The dashboard always prefers the real delivery date and only falls back
   // to the approval date when the delivery date is missing or invalid.
   const approvalDate = parseDateBR(row[COLUMN_INDEX.approvalDate]);
@@ -113,6 +119,7 @@ function normalizeRow(row, sourceLine) {
   return {
     id: `${os}-${sourceLine}`,
     os,
+    osNumber,
     client,
     approvalDate,
     deliveryDate,
