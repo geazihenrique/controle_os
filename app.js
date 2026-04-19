@@ -22,7 +22,7 @@ const state = {
     period: 'all',
   },
   selectedJobId: '',
-  currentMonth: startOfMonth(new Date()),
+  currentMonth: startOfMonth(new Date(2026, 0, 1)),
 };
 
 const elements = {
@@ -39,7 +39,6 @@ const elements = {
   osList: document.getElementById('os-list'),
   resultsCount: document.getElementById('results-count'),
   emptyState: document.getElementById('empty-state'),
-  detailEmpty: document.getElementById('detail-empty'),
   detailContent: document.getElementById('detail-content'),
   detailTemplate: document.getElementById('detail-template'),
   detailDateChip: document.getElementById('detail-date-chip'),
@@ -113,15 +112,7 @@ async function loadDashboard() {
     populateSelect(elements.statusFilter, payload.filters.statuses);
     populateSelect(elements.serviceTypeFilter, payload.filters.serviceTypes);
 
-    const currentMonthWithJobs = payload.jobs.find(
-      (job) =>
-        job.effectiveDate.getMonth() === state.currentMonth.getMonth() &&
-        job.effectiveDate.getFullYear() === state.currentMonth.getFullYear(),
-    );
-
-    if (!currentMonthWithJobs && payload.jobs.length > 0) {
-      state.currentMonth = startOfMonth(payload.jobs[0].effectiveDate);
-    }
+    state.currentMonth = startOfMonth(new Date(2026, 0, 1));
 
     applyFilters();
   } catch (error) {
@@ -160,7 +151,6 @@ function applyFilters() {
     const matchesStatus = !state.filters.status || job.status === state.filters.status;
     const matchesServiceType =
       !state.filters.serviceType || job.serviceType === state.filters.serviceType;
-    const isUpcoming = job.effectiveDate >= now;
     const matchesPeriod = matchPeriod(job.effectiveDate, state.filters.period, now);
 
     return (
@@ -168,7 +158,6 @@ function applyFilters() {
       matchesResponsible &&
       matchesStatus &&
       matchesServiceType &&
-      isUpcoming &&
       matchesPeriod
     );
   });
@@ -378,15 +367,16 @@ function renderDetail() {
   const job = state.filteredJobs.find((entry) => entry.id === state.selectedJobId);
 
   if (!job) {
-    elements.detailEmpty.hidden = false;
     elements.detailContent.hidden = true;
+    elements.detailContent.innerHTML = '';
     elements.detailDateChip.textContent = '';
+    elements.detailDateChip.hidden = true;
     return;
   }
 
-  elements.detailEmpty.hidden = true;
   elements.detailContent.hidden = false;
   elements.detailDateChip.textContent = formatDateLong(job.effectiveDate);
+  elements.detailDateChip.hidden = false;
 
   const fragment = elements.detailTemplate.content.cloneNode(true);
   const card = fragment.querySelector('.detail-card');
