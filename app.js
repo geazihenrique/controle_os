@@ -190,12 +190,25 @@ function applyFilters() {
     return matchesResponsible && matchesStatus && matchesServiceType;
   });
 
-  state.listJobs = filterListJobsBySearch(state.calendarJobs, state.filters.search);
+  state.listJobs = filterOperationalJobs(state.calendarJobs);
+  state.listJobs = filterListJobsBySearch(state.listJobs, state.filters.search);
 
   syncSelection();
   renderCalendar();
   renderList();
   renderDetail();
+}
+
+function filterOperationalJobs(jobs) {
+  const today = getTodayReference();
+
+  return jobs.filter((job) => {
+    if (job.effectiveDate >= today) {
+      return true;
+    }
+
+    return isJobOverdue(job, today);
+  });
 }
 
 function filterListJobsBySearch(jobs, searchValue) {
@@ -209,10 +222,20 @@ function filterListJobsBySearch(jobs, searchValue) {
   );
 }
 
+function getTodayReference() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+function isJobOverdue(job, referenceDate = getTodayReference()) {
+  return job.effectiveDate < referenceDate && slugify(job.status) !== 'finalizado';
+}
+
 function syncSelection() {
-  const selectionStillVisible = state.listJobs.some((job) => job.id === state.selectedJobId);
+  const selectionStillVisible = state.calendarJobs.some((job) => job.id === state.selectedJobId);
   if (!selectionStillVisible) {
-    state.selectedJobId = state.listJobs[0]?.id || '';
+    state.selectedJobId = state.listJobs[0]?.id || state.calendarJobs[0]?.id || '';
   }
 }
 
@@ -250,26 +273,17 @@ function renderCalendar() {
     const jobsContainer = document.createElement('div');
     jobsContainer.className = 'calendar-day-jobs';
 
-    jobs.slice(0, 3).forEach((job) => {
+    jobs.forEach((job) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = `calendar-job${job.id === state.selectedJobId ? ' is-selected' : ''}`;
+      button.className = `calendar-job${job.id === state.selectedJobId ? ' is-selected' : ''}${isJobOverdue(job) ? ' is-overdue' : ''}`;
       button.innerHTML = `
         <span class="calendar-job-os">OS ${escapeHtml(job.os)}</span>
         <span class="calendar-job-client">${escapeHtml(job.client)}</span>
-        ${job.usesFallbackDate ? '<span class="mini-badge warning">A definir</span>' : ''}
-        ${job.hasConflict ? '<span class="mini-badge danger">Conflito</span>' : ''}
       `;
       button.addEventListener('click', () => selectJob(job.id));
       jobsContainer.append(button);
     });
-
-    if (jobs.length > 3) {
-      const more = document.createElement('p');
-      more.className = 'calendar-more';
-      more.textContent = `+${jobs.length - 3} OS`;
-      jobsContainer.append(more);
-    }
 
     card.append(jobsContainer);
     elements.calendarGrid.append(card);
@@ -316,7 +330,7 @@ function renderList() {
   state.listJobs.forEach((job) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = `os-card${job.id === state.selectedJobId ? ' is-selected' : ''}`;
+    button.className = `os-card${job.id === state.selectedJobId ? ' is-selected' : ''}${isJobOverdue(job) ? ' is-overdue' : ''}`;
     button.setAttribute('role', 'option');
     button.setAttribute('aria-selected', String(job.id === state.selectedJobId));
     button.innerHTML = buildCardMarkup(job);
@@ -333,9 +347,12 @@ function buildCardMarkup(job) {
   const fallbackHtml = job.usesFallbackDate
     ? `<span class="badge badge-warning">A definir</span>`
     : '';
+  const overdueHtml = isJobOverdue(job)
+    ? `<span class="badge badge-danger">Em atraso</span>`
+    : '';
 
   return `
-    <div class="os-card-head">
+    <div class="os-card-head${isJobOverdue(job) ? ' is-overdue' : ''}">
       <div>
         <p class="os-number">OS ${escapeHtml(job.os)}</p>
         <h3>${escapeHtml(job.client)}</h3>
@@ -353,6 +370,7 @@ function buildCardMarkup(job) {
       <span class="badge">${escapeHtml(job.serviceType)}</span>
       ${fallbackHtml}
       ${conflictHtml}
+      ${overdueHtml}
     </div>
 
     <dl class="card-meta-grid">
@@ -383,7 +401,7 @@ function buildCardMarkup(job) {
 }
 
 function renderDetail() {
-  const job = state.listJobs.find((entry) => entry.id === state.selectedJobId);
+  const job = state.calendarJobs.find((entry) => entry.id === state.selectedJobId);
 
   if (!job) {
     elements.detailContent.hidden = true;
@@ -409,6 +427,9 @@ function renderDetail() {
   if (job.usesFallbackDate) {
     badges.append(buildBadge('A definir', 'warning'));
   }
+  if (isJobOverdue(job)) {
+    badges.append(buildBadge('Em atraso', 'danger'));
+  }
   if (job.hasConflict) {
     badges.append(buildBadge('Conflito de instalador', 'danger'));
     const conflictBlock = document.createElement('div');
@@ -426,7 +447,7 @@ function renderDetail() {
     ['Vendedor / atendimento', job.salesperson || 'Não informado'],
     ['Logística', job.logistics],
     ['Data de entrega', job.deliveryDateLabel],
-    ['Instaladores', job.installers.join(', ') || 'Não informado'],
+    ['Instaladores', job.installers.join(', ') || 'Não informado', 'is-full'],
     ['Observações gerenciais', job.observations || 'Sem observações', 'is-full'],
   ];
 

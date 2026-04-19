@@ -126,7 +126,7 @@ img {
 
 .dashboard-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(275px, 322px);
+  grid-template-columns: minmax(0, 1fr) minmax(289px, 338px);
   gap: 24px;
   align-items: start;
   width: 100%;
@@ -269,7 +269,7 @@ img {
 }
 
 .calendar-day {
-  min-height: 156px;
+  min-height: 132px;
   padding: 10px;
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -299,16 +299,16 @@ img {
 
 .calendar-day-jobs {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .calendar-job {
   display: grid;
-  gap: 4px;
+  gap: 2px;
   width: 100%;
-  padding: 10px;
+  padding: 7px 8px;
   text-align: left;
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--surface);
   border: 1px solid rgba(110, 33, 215, 0.1);
   transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
@@ -324,23 +324,21 @@ img {
 }
 
 .calendar-job-os {
-  font-size: 0.79rem;
+  font-size: 0.73rem;
   font-weight: 800;
   color: var(--accent-strong);
 }
 
 .calendar-job-client {
-  font-size: 0.84rem;
-  line-height: 1.25;
+  font-size: 0.76rem;
+  line-height: 1.18;
   color: var(--text);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
-.calendar-more {
-  margin: 0;
-  padding: 6px 2px 0;
-  font-size: 0.82rem;
-  color: var(--muted);
+.calendar-job.is-overdue {
+  border-color: rgba(203, 77, 62, 0.28);
+  background: linear-gradient(180deg, rgba(203, 77, 62, 0.08), rgba(255, 255, 255, 0.96));
 }
 
 .filters-grid {
@@ -417,6 +415,11 @@ img {
   transform: translateY(-2px);
   border-color: rgba(110, 33, 215, 0.28);
   box-shadow: 0 18px 36px rgba(110, 33, 215, 0.12);
+}
+
+.os-card.is-overdue {
+  border-color: rgba(203, 77, 62, 0.22);
+  box-shadow: 0 18px 36px rgba(203, 77, 62, 0.08);
 }
 
 .os-card-head {
@@ -682,7 +685,7 @@ img {
   }
 
   .calendar-day {
-    min-height: 138px;
+    min-height: 126px;
     padding: 8px;
   }
 
