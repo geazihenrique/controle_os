@@ -425,17 +425,14 @@ function renderDetail() {
     ['Responsável', job.responsible],
     ['Vendedor / atendimento', job.salesperson || 'Não informado'],
     ['Logística', job.logistics],
-    ['Local', job.location],
     ['Data de entrega', job.deliveryDateLabel],
-    ['Data de instalação', job.installationDateLabel],
     ['Instaladores', job.installers.join(', ') || 'Não informado'],
-    ['Instalado por', job.installedBy || 'Não informado'],
-    ['Observações gerenciais', job.observations || 'Sem observações'],
+    ['Observações gerenciais', job.observations || 'Sem observações', 'is-full'],
   ];
 
-  detailFields.forEach(([label, value]) => {
+  detailFields.forEach(([label, value, modifierClass = '']) => {
     const wrapper = document.createElement('div');
-    wrapper.className = 'detail-item';
+    wrapper.className = `detail-item${modifierClass ? ` ${modifierClass}` : ''}`;
     wrapper.innerHTML = `
       <dt>${escapeHtml(label)}</dt>
       <dd>${escapeHtml(value).replace(/\n/g, '<br />')}</dd>

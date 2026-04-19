@@ -513,6 +513,10 @@ img {
   background: rgba(248, 246, 252, 0.9);
 }
 
+.detail-item.is-full {
+  grid-column: 1 / -1;
+}
+
 .card-meta-grid dt,
 .card-meta-grid dd,
 .detail-item dt,
