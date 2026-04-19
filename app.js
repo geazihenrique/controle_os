@@ -11,6 +11,8 @@ import {
   toDateKey,
 } from './utils.js';
 
+const AUTO_REFRESH_INTERVAL = 10 * 60 * 1000;
+
 const state = {
   jobs: [],
   filteredJobs: [],
@@ -22,7 +24,8 @@ const state = {
     period: 'all',
   },
   selectedJobId: '',
-  currentMonth: startOfMonth(new Date(2026, 0, 1)),
+  currentMonth: startOfMonth(new Date()),
+  lastUpdatedAt: null,
 };
 
 const elements = {
@@ -36,6 +39,7 @@ const elements = {
   serviceTypeFilter: document.getElementById('service-type-filter'),
   periodFilter: document.getElementById('period-filter'),
   refreshData: document.getElementById('refresh-data'),
+  lastUpdated: document.getElementById('last-updated'),
   osList: document.getElementById('os-list'),
   resultsCount: document.getElementById('results-count'),
   emptyState: document.getElementById('empty-state'),
@@ -50,7 +54,10 @@ init();
 
 async function init() {
   wireEvents();
-  await loadDashboard();
+  await loadDashboard({ isInitialLoad: true });
+  window.setInterval(() => {
+    loadDashboard({ preserveMonth: true, backgroundRefresh: true });
+  }, AUTO_REFRESH_INTERVAL);
 }
 
 function wireEvents() {
@@ -94,7 +101,7 @@ function wireEvents() {
     elements.refreshData.disabled = true;
     elements.refreshData.textContent = 'Atualizando...';
     try {
-      await loadDashboard();
+      await loadDashboard({ preserveMonth: true });
     } finally {
       elements.refreshData.disabled = false;
       elements.refreshData.textContent = 'Atualizar dados';
@@ -102,36 +109,88 @@ function wireEvents() {
   });
 }
 
-async function loadDashboard() {
-  toggleLoading(true);
+async function loadDashboard(options = {}) {
+  const { isInitialLoad = false, preserveMonth = true, backgroundRefresh = false } = options;
+
+  if (!backgroundRefresh) {
+    toggleLoading(true);
+  }
 
   try {
     const payload = await fetchJobs();
     state.jobs = payload.jobs;
-    populateSelect(elements.responsibleFilter, payload.filters.responsibles);
-    populateSelect(elements.statusFilter, payload.filters.statuses);
-    populateSelect(elements.serviceTypeFilter, payload.filters.serviceTypes);
+    state.lastUpdatedAt = payload.meta.updatedAt;
 
-    state.currentMonth = startOfMonth(new Date(2026, 0, 1));
+    if (isInitialLoad && !preserveMonth) {
+      state.currentMonth = startOfMonth(new Date());
+    }
 
+    populateSelect(
+      elements.responsibleFilter,
+      payload.filters.responsibles,
+      state.filters.responsible,
+    );
+    populateSelect(elements.statusFilter, payload.filters.statuses, state.filters.status);
+    populateSelect(
+      elements.serviceTypeFilter,
+      payload.filters.serviceTypes,
+      state.filters.serviceType,
+    );
+
+    renderLastUpdated();
     applyFilters();
   } catch (error) {
+    if (state.jobs.length > 0) {
+      console.error(
+        backgroundRefresh
+          ? 'Falha ao atualizar dados automaticamente.'
+          : 'Falha ao atualizar dados.',
+        error,
+      );
+      return;
+    }
+
     renderFailureState(error);
   } finally {
-    toggleLoading(false);
+    if (!backgroundRefresh) {
+      toggleLoading(false);
+    }
   }
 }
 
-function populateSelect(selectElement, values) {
-  const firstOption = selectElement.querySelector('option');
+function populateSelect(selectElement, values, selectedValue = '') {
+  const firstOptionLabel = selectElement.querySelector('option')?.textContent || 'Todos';
   selectElement.innerHTML = '';
+
+  const firstOption = document.createElement('option');
+  firstOption.value = '';
+  firstOption.textContent = firstOptionLabel;
   selectElement.append(firstOption);
+
   values.forEach((value) => {
     const option = document.createElement('option');
     option.value = value;
     option.textContent = value;
     selectElement.append(option);
   });
+
+  selectElement.value = values.includes(selectedValue) ? selectedValue : '';
+}
+
+function renderLastUpdated() {
+  elements.lastUpdated.textContent = state.lastUpdatedAt
+    ? `Última atualização: ${formatLastUpdatedLabel(state.lastUpdatedAt)}`
+    : '';
+}
+
+function formatLastUpdatedLabel(date) {
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
 }
 
 function applyFilters() {
