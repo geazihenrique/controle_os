@@ -125,7 +125,7 @@ img {
 
 .dashboard-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.82fr);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
   gap: 24px;
   align-items: start;
 }
@@ -142,6 +142,8 @@ img {
   border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 100%;
 }
 
 .calendar-panel,
@@ -155,10 +157,15 @@ img {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
+  min-width: 0;
 }
 
 .panel-head.compact {
   align-items: center;
+}
+
+.panel-head > * {
+  min-width: 0;
 }
 
 .calendar-nav {
@@ -236,6 +243,7 @@ img {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 10px;
+  min-width: 0;
 }
 
 .day-name {
@@ -501,8 +509,26 @@ img {
 }
 
 .detail-panel {
+  align-self: start;
   position: sticky;
   top: 20px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.detail-content,
+.detail-card,
+.detail-head,
+.detail-topline,
+.detail-section,
+.detail-grid {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.detail-date-chip {
+  max-width: 100%;
 }
 
 .detail-topline {
@@ -537,7 +563,7 @@ img {
   color: #8a2f21;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1100px) {
   .dashboard-layout {
     grid-template-columns: 1fr;
   }
