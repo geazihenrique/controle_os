@@ -58,19 +58,23 @@
                 <p class="section-kicker">Leitura rápida</p>
                 <h2 id="filters-title">Filtros</h2>
               </div>
-              <button id="refresh-data" class="ghost-button" type="button">Atualizar dados</button>
             </div>
 
             <div class="filters-grid">
-              <label class="field field-search">
-                <span>Buscar</span>
-                <input
-                  id="search-input"
-                  type="search"
-                  placeholder="OS, cliente ou descrição"
-                  autocomplete="off"
-                />
-              </label>
+              <div class="search-stack">
+                <label class="field field-search">
+                  <span>Buscar</span>
+                  <input
+                    id="search-input"
+                    type="search"
+                    placeholder="OS, cliente ou descrição"
+                    autocomplete="off"
+                  />
+                </label>
+                <button id="search-button" class="ghost-button search-button" type="button">
+                  Pesquisar
+                </button>
+              </div>
 
               <label class="field">
                 <span>Responsável</span>

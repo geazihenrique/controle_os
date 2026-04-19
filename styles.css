@@ -126,7 +126,7 @@ img {
 
 .dashboard-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 306px);
   gap: 24px;
   align-items: start;
   width: 100%;
@@ -141,8 +141,8 @@ img {
   display: grid;
   gap: 20px;
   min-width: 0;
-  width: 90%;
-  max-width: 90%;
+  width: 100%;
+  max-width: 100%;
   justify-self: start;
 }
 
@@ -350,6 +350,12 @@ img {
   align-items: end;
 }
 
+.search-stack {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
 .field {
   display: grid;
   gap: 8px;
@@ -375,6 +381,11 @@ img {
 
 .field-search {
   min-width: 0;
+}
+
+.search-button {
+  justify-self: start;
+  min-width: 148px;
 }
 
 .field input:focus,
@@ -650,6 +661,11 @@ img {
   .card-meta-grid,
   .detail-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .search-button {
+    width: 100%;
+    justify-self: stretch;
   }
 
   .calendar-grid {

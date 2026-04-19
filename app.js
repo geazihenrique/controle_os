@@ -1,7 +1,6 @@
 import { fetchJobs } from './data.js';
 import {
   addMonths,
-  debounce,
   endOfMonth,
   escapeHtml,
   formatDateLong,
@@ -15,7 +14,8 @@ const AUTO_REFRESH_INTERVAL = 10 * 60 * 1000;
 
 const state = {
   jobs: [],
-  filteredJobs: [],
+  calendarJobs: [],
+  listJobs: [],
   filters: {
     search: '',
     responsible: '',
@@ -34,11 +34,11 @@ const elements = {
   prevMonth: document.getElementById('prev-month'),
   nextMonth: document.getElementById('next-month'),
   searchInput: document.getElementById('search-input'),
+  searchButton: document.getElementById('search-button'),
   responsibleFilter: document.getElementById('responsible-filter'),
   statusFilter: document.getElementById('status-filter'),
   serviceTypeFilter: document.getElementById('service-type-filter'),
   periodFilter: document.getElementById('period-filter'),
-  refreshData: document.getElementById('refresh-data'),
   lastUpdated: document.getElementById('last-updated'),
   osList: document.getElementById('os-list'),
   resultsCount: document.getElementById('results-count'),
@@ -77,13 +77,19 @@ function wireEvents() {
     }
   });
 
-  elements.searchInput.addEventListener(
-    'input',
-    debounce((event) => {
-      state.filters.search = event.target.value.trim().toLowerCase();
-      applyFilters();
-    }),
-  );
+  elements.searchButton.addEventListener('click', () => {
+    state.filters.search = elements.searchInput.value.trim();
+    applyFilters();
+  });
+
+  elements.searchInput.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+    event.preventDefault();
+    state.filters.search = elements.searchInput.value.trim();
+    applyFilters();
+  });
 
   [
     ['responsibleFilter', 'responsible'],
@@ -95,17 +101,6 @@ function wireEvents() {
       state.filters[filterKey] = event.target.value;
       applyFilters();
     });
-  });
-
-  elements.refreshData.addEventListener('click', async () => {
-    elements.refreshData.disabled = true;
-    elements.refreshData.textContent = 'Atualizando...';
-    try {
-      await loadDashboard({ preserveMonth: true });
-    } finally {
-      elements.refreshData.disabled = false;
-      elements.refreshData.textContent = 'Atualizar dados';
-    }
   });
 }
 
@@ -196,15 +191,8 @@ function formatLastUpdatedLabel(date) {
 function applyFilters() {
   const now = new Date();
   now.setHours(12, 0, 0, 0);
-  const searchTerm = slugify(state.filters.search);
 
-  state.filteredJobs = state.jobs.filter((job) => {
-    const matchesSearch =
-      !searchTerm ||
-      [job.os, job.client, job.description].some((field) =>
-        slugify(field).includes(searchTerm),
-      );
-
+  state.calendarJobs = state.jobs.filter((job) => {
     const matchesResponsible =
       !state.filters.responsible || job.responsible === state.filters.responsible;
     const matchesStatus = !state.filters.status || job.status === state.filters.status;
@@ -212,19 +200,26 @@ function applyFilters() {
       !state.filters.serviceType || job.serviceType === state.filters.serviceType;
     const matchesPeriod = matchPeriod(job.effectiveDate, state.filters.period, now);
 
-    return (
-      matchesSearch &&
-      matchesResponsible &&
-      matchesStatus &&
-      matchesServiceType &&
-      matchesPeriod
-    );
+    return matchesResponsible && matchesStatus && matchesServiceType && matchesPeriod;
   });
+
+  state.listJobs = filterListJobsBySearch(state.calendarJobs, state.filters.search);
 
   syncSelection();
   renderCalendar();
   renderList();
   renderDetail();
+}
+
+function filterListJobsBySearch(jobs, searchValue) {
+  const searchTerm = slugify(searchValue);
+  if (!searchTerm) {
+    return jobs;
+  }
+
+  return jobs.filter((job) =>
+    [job.os, job.client, job.description].some((field) => slugify(field).includes(searchTerm)),
+  );
 }
 
 function matchPeriod(date, period, now) {
@@ -250,9 +245,9 @@ function matchPeriod(date, period, now) {
 }
 
 function syncSelection() {
-  const selectionStillVisible = state.filteredJobs.some((job) => job.id === state.selectedJobId);
+  const selectionStillVisible = state.listJobs.some((job) => job.id === state.selectedJobId);
   if (!selectionStillVisible) {
-    state.selectedJobId = state.filteredJobs[0]?.id || '';
+    state.selectedJobId = state.listJobs[0]?.id || '';
   }
 }
 
@@ -261,7 +256,7 @@ function renderCalendar() {
   const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
   const monthStart = startOfMonth(state.currentMonth);
   const monthEnd = endOfMonth(state.currentMonth);
-  const jobsByDate = groupJobsByDate(state.filteredJobs);
+  const jobsByDate = groupJobsByDate(state.calendarJobs);
   const calendarDates = buildCalendarDates(monthStart, monthEnd);
 
   elements.calendarGrid.innerHTML = '';
@@ -350,10 +345,10 @@ function groupJobsByDate(jobs) {
 
 function renderList() {
   elements.osList.innerHTML = '';
-  elements.resultsCount.textContent = `${state.filteredJobs.length} OS exibidas`;
-  elements.emptyState.hidden = state.filteredJobs.length > 0;
+  elements.resultsCount.textContent = `${state.listJobs.length} OS exibidas`;
+  elements.emptyState.hidden = state.listJobs.length > 0;
 
-  state.filteredJobs.forEach((job) => {
+  state.listJobs.forEach((job) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = `os-card${job.id === state.selectedJobId ? ' is-selected' : ''}`;
@@ -423,7 +418,7 @@ function buildCardMarkup(job) {
 }
 
 function renderDetail() {
-  const job = state.filteredJobs.find((entry) => entry.id === state.selectedJobId);
+  const job = state.listJobs.find((entry) => entry.id === state.selectedJobId);
 
   if (!job) {
     elements.detailContent.hidden = true;
