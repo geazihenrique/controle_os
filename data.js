@@ -13,7 +13,8 @@ import {
 
 const SHEET_ID = '1ul3w4dGk218jWlteoto9fFROzZT9r05NE3Fcy2fG77Q';
 const SHEET_GID = '241851784';
-const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+const PUBLISHED_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=${SHEET_GID}&single=true&output=csv`;
+const LEGACY_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
 const MIN_OS_NUMBER = 3053;
 
 const COLUMN_INDEX = {
@@ -34,20 +35,8 @@ const COLUMN_INDEX = {
 };
 
 export async function fetchJobs() {
-  const response = await fetch(`${CSV_URL}&t=${Date.now()}`, {
-    method: 'GET',
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    throw new Error('Não foi possível carregar a planilha pública.');
-  }
-
-  const csvText = await response.text();
-  const rows = parseCSV(csvText);
-  const headerIndex = rows.findIndex(
-    (row) => slugify(row[0]) === 'os' && slugify(row[1]).includes('cliente'),
-  );
+  const { rows, sourceUrl } = await fetchSheetRows();
+  const headerIndex = findHeaderIndex(rows);
 
   if (headerIndex === -1) {
     throw new Error('Cabeçalho da planilha não encontrado.');
@@ -76,10 +65,69 @@ export async function fetchJobs() {
       serviceTypes: uniqueSorted(normalizedJobs.map((job) => job.serviceType)),
     },
     meta: {
-      sourceUrl: CSV_URL,
+      sourceUrl,
       updatedAt: new Date(),
     },
   };
+}
+
+async function fetchSheetRows() {
+  const sourceUrls = [PUBLISHED_CSV_URL, LEGACY_CSV_URL];
+  let lastError = null;
+
+  for (const sourceUrl of sourceUrls) {
+    try {
+      const response = await fetch(`${sourceUrl}${sourceUrl.includes('?') ? '&' : '?'}t=${Date.now()}`, {
+        method: 'GET',
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Falha HTTP ${response.status}`);
+      }
+
+      const csvText = await response.text();
+      if (looksLikeHtml(csvText)) {
+        throw new Error('A fonte pública retornou HTML em vez de CSV.');
+      }
+
+      const rows = parseCSV(csvText);
+      if (rows.length === 0) {
+        throw new Error('A planilha pública foi carregada sem linhas válidas.');
+      }
+
+      return { rows, sourceUrl };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error('Não foi possível carregar a planilha pública.');
+}
+
+function findHeaderIndex(rows) {
+  return rows.findIndex((row) => {
+    const firstCell = compactHeaderValue(row[0]);
+    const secondCell = compactHeaderValue(row[1]);
+    const thirdCell = compactHeaderValue(row[2]);
+    const fourthCell = compactHeaderValue(row[3]);
+
+    return (
+      (firstCell === 'os' && secondCell.includes('cliente')) ||
+      (secondCell.includes('cliente') &&
+        thirdCell.includes('dataaprov') &&
+        fourthCell.includes('datadeentrega'))
+    );
+  });
+}
+
+function compactHeaderValue(value) {
+  return slugify(value).replace(/\s+/g, '');
+}
+
+function looksLikeHtml(value) {
+  const normalized = String(value ?? '').trimStart().toLowerCase();
+  return normalized.startsWith('<!doctype html') || normalized.startsWith('<html');
 }
 
 function normalizeRow(row, sourceLine) {
