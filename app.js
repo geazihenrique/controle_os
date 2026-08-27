@@ -1,21 +1,25 @@
-import { fetchJobs } from './data.js?v=20260827-search2';
+import { fetchJobs } from './data.js?v=20260827-search3';
 import {
   addMonths,
-  endOfMonth,
   escapeHtml,
+  endOfMonth,
+  formatBrazilPhone,
   formatDateLong,
   formatMonthYear,
   slugify,
   startOfMonth,
+  toPhoneHref,
   toDateKey,
-} from './utils.js?v=20260827-search2';
+} from './utils.js?v=20260827-search3';
 
 const AUTO_REFRESH_INTERVAL = 10 * 60 * 1000;
 
 const state = {
   jobs: [],
+  professionals: [],
   calendarJobs: [],
   listJobs: [],
+  professionalResults: [],
   filters: {
     search: '',
     responsible: '',
@@ -25,6 +29,7 @@ const state = {
   selectedJobId: '',
   currentMonth: startOfMonth(new Date()),
   lastUpdatedAt: null,
+  professionalsError: '',
 };
 
 const elements = {
@@ -42,6 +47,10 @@ const elements = {
   osList: document.getElementById('os-list'),
   resultsCount: document.getElementById('results-count'),
   emptyState: document.getElementById('empty-state'),
+  searchFeedback: document.getElementById('search-feedback'),
+  professionalResultsSection: document.getElementById('professional-results-section'),
+  professionalResultsCount: document.getElementById('professional-results-count'),
+  professionalResults: document.getElementById('professional-results'),
   detailContent: document.getElementById('detail-content'),
   detailTemplate: document.getElementById('detail-template'),
   detailDateChip: document.getElementById('detail-date-chip'),
@@ -113,7 +122,11 @@ async function loadDashboard(options = {}) {
   try {
     const payload = await fetchJobs();
     state.jobs = payload.jobs;
+    state.professionals = payload.professionals || [];
     state.lastUpdatedAt = payload.meta.updatedAt;
+    state.professionalsError = payload.meta.professionals?.hasError
+      ? payload.meta.professionals.errorMessage
+      : '';
 
     if (isInitialLoad && !preserveMonth) {
       state.currentMonth = startOfMonth(new Date());
@@ -199,10 +212,12 @@ function applyFilters() {
   });
 
   state.listJobs = buildListJobs(state.calendarJobs, state.filters.search);
+  state.professionalResults = filterProfessionalsBySearch(state.professionals, state.filters.search);
 
   syncSelection();
   renderCalendar();
   renderList();
+  renderProfessionalResults();
   renderDetail();
 }
 
@@ -263,6 +278,28 @@ function buildJobSearchParts(job) {
     job.deliveryDateLabel,
     ...job.installers,
   ]
+    .map((value) => slugify(value))
+    .filter(Boolean);
+}
+
+function filterProfessionalsBySearch(professionals, searchValue) {
+  const normalizedSearch = slugify(searchValue);
+  if (!normalizedSearch) {
+    return [];
+  }
+
+  const searchTerms = normalizedSearch.split(/\s+/).filter(Boolean);
+
+  return professionals.filter((professional) => {
+    const searchableParts = buildProfessionalSearchParts(professional);
+    return searchTerms.every((term) =>
+      searchableParts.some((part) => part.includes(term) || term.includes(part)),
+    );
+  });
+}
+
+function buildProfessionalSearchParts(professional) {
+  return [professional.area, professional.name, professional.contact]
     .map((value) => slugify(value))
     .filter(Boolean);
 }
@@ -370,7 +407,21 @@ function groupJobsByDate(jobs) {
 function renderList() {
   elements.osList.innerHTML = '';
   elements.resultsCount.textContent = `${state.listJobs.length} OS exibidas`;
-  elements.emptyState.hidden = state.listJobs.length > 0;
+
+  const hasSearch = Boolean(slugify(state.filters.search));
+  const hasOsResults = state.listJobs.length > 0;
+  const hasProfessionalResults = state.professionalResults.length > 0;
+  elements.emptyState.hidden = hasOsResults || hasProfessionalResults;
+
+  if (!hasOsResults && hasSearch) {
+    elements.emptyState.querySelector('h3').textContent = 'Nenhuma OS encontrada';
+    elements.emptyState.querySelector('p').textContent =
+      'A busca continua abaixo com contatos profissionais quando houver correspondência.';
+  } else {
+    elements.emptyState.querySelector('h3').textContent = 'Nenhuma OS encontrada';
+    elements.emptyState.querySelector('p').textContent =
+      'Ajuste os filtros ou atualize os dados para tentar novamente.';
+  }
 
   state.listJobs.forEach((job) => {
     const button = document.createElement('button');
@@ -382,6 +433,67 @@ function renderList() {
     button.addEventListener('click', () => selectJob(job.id));
     elements.osList.append(button);
   });
+}
+
+function renderProfessionalResults() {
+  const hasSearch = Boolean(slugify(state.filters.search));
+  const hasProfessionalResults = state.professionalResults.length > 0;
+
+  elements.professionalResults.innerHTML = '';
+  elements.professionalResultsSection.hidden = !hasSearch || !hasProfessionalResults;
+  elements.professionalResultsCount.textContent = hasProfessionalResults
+    ? `${state.professionalResults.length} contatos`
+    : '';
+
+  if (hasSearch && state.professionalsError) {
+    elements.searchFeedback.hidden = false;
+    elements.searchFeedback.textContent = state.professionalsError;
+  } else {
+    elements.searchFeedback.hidden = true;
+    elements.searchFeedback.textContent = '';
+  }
+
+  if (!hasSearch || !hasProfessionalResults) {
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  state.professionalResults.forEach((professional) => {
+    const article = document.createElement('article');
+    article.className = 'professional-card';
+
+    const contactValue = professional.contact || 'Contato não informado';
+    const phoneHref = toPhoneHref(contactValue);
+    const contactMarkup = phoneHref
+      ? `<a class="professional-contact" href="${escapeHtml(phoneHref)}">${escapeHtml(
+          formatBrazilPhone(contactValue),
+        )}</a>`
+      : `<span class="professional-contact">${escapeHtml(
+          formatBrazilPhone(contactValue),
+        )}</span>`;
+
+    article.innerHTML = `
+      <div class="professional-card-head">
+        <span class="mini-badge">Profissional</span>
+        <h3>${escapeHtml(professional.name)}</h3>
+      </div>
+      <dl class="professional-meta">
+        <div>
+          <dt>Profissional / Área</dt>
+          <dd>${escapeHtml(professional.area)}</dd>
+        </div>
+        <div>
+          <dt>Contato</dt>
+          <dd>${contactMarkup}</dd>
+        </div>
+      </dl>
+    `;
+
+    fragment.append(article);
+  });
+
+  elements.professionalResults.append(fragment);
 }
 
 function buildCardMarkup(job) {
