@@ -40,7 +40,7 @@ const COLUMN_INDEX = {
 export async function fetchJobs() {
   const [jobsResult, professionalsResult] = await Promise.allSettled([
     fetchSheetRows([VENDAS_OS_PUBLISHED_CSV_URL, VENDAS_OS_LEGACY_CSV_URL]),
-    fetchSheetRows([DADOS_PUBLISHED_CSV_URL, DADOS_LEGACY_CSV_URL]),
+    fetchSheetRows([DADOS_LEGACY_CSV_URL, DADOS_PUBLISHED_CSV_URL]),
   ]);
 
   if (jobsResult.status !== 'fulfilled') {
