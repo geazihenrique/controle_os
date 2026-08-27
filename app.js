@@ -1,4 +1,4 @@
-import { fetchJobs } from './data.js';
+import { fetchJobs } from './data.js?v=20260827-search2';
 import {
   addMonths,
   endOfMonth,
@@ -8,7 +8,7 @@ import {
   slugify,
   startOfMonth,
   toDateKey,
-} from './utils.js';
+} from './utils.js?v=20260827-search2';
 
 const AUTO_REFRESH_INTERVAL = 10 * 60 * 1000;
 
@@ -237,12 +237,14 @@ function filterListJobsBySearch(jobs, searchValue) {
   const searchTerms = normalizedSearch.split(/\s+/).filter(Boolean);
 
   return jobs.filter((job) => {
-    const searchableContent = buildJobSearchIndex(job);
-    return searchTerms.every((term) => searchableContent.includes(term));
+    const searchableParts = buildJobSearchParts(job);
+    return searchTerms.every((term) =>
+      searchableParts.some((part) => part.includes(term) || term.includes(part)),
+    );
   });
 }
 
-function buildJobSearchIndex(job) {
+function buildJobSearchParts(job) {
   return [
     job.os,
     `OS ${job.os}`,
@@ -262,8 +264,7 @@ function buildJobSearchIndex(job) {
     ...job.installers,
   ]
     .map((value) => slugify(value))
-    .filter(Boolean)
-    .join(' ');
+    .filter(Boolean);
 }
 
 function getTodayReference() {
