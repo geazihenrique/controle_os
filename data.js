@@ -12,9 +12,12 @@ import {
 } from './utils.js';
 
 const SHEET_ID = '1ul3w4dGk218jWlteoto9fFROzZT9r05NE3Fcy2fG77Q';
-const SHEET_GID = '241851784';
-const PUBLISHED_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=${SHEET_GID}&single=true&output=csv`;
-const LEGACY_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+const VENDAS_OS_GID = '241851784';
+const DADOS_GID = '271610662';
+const VENDAS_OS_PUBLISHED_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=${VENDAS_OS_GID}&single=true&output=csv`;
+const VENDAS_OS_LEGACY_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${VENDAS_OS_GID}`;
+const DADOS_PUBLISHED_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=${DADOS_GID}&single=true&output=csv`;
+const DADOS_LEGACY_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${DADOS_GID}`;
 const MIN_OS_NUMBER = 3053;
 
 const COLUMN_INDEX = {
@@ -35,7 +38,16 @@ const COLUMN_INDEX = {
 };
 
 export async function fetchJobs() {
-  const { rows, sourceUrl } = await fetchSheetRows();
+  const [jobsResult, professionalsResult] = await Promise.allSettled([
+    fetchSheetRows([VENDAS_OS_PUBLISHED_CSV_URL, VENDAS_OS_LEGACY_CSV_URL]),
+    fetchSheetRows([DADOS_PUBLISHED_CSV_URL, DADOS_LEGACY_CSV_URL]),
+  ]);
+
+  if (jobsResult.status !== 'fulfilled') {
+    throw jobsResult.reason;
+  }
+
+  const { rows, sourceUrl } = jobsResult.value;
   const headerIndex = findHeaderIndex(rows);
 
   if (headerIndex === -1) {
@@ -57,8 +69,26 @@ export async function fetchJobs() {
 
   attachConflicts(normalizedJobs);
 
+  const professionals =
+    professionalsResult.status === 'fulfilled'
+      ? normalizeProfessionals(professionalsResult.value.rows)
+      : [];
+  const professionalsMeta =
+    professionalsResult.status === 'fulfilled'
+      ? {
+          sourceUrl: professionalsResult.value.sourceUrl,
+          hasError: false,
+          errorMessage: '',
+        }
+      : {
+          sourceUrl: DADOS_PUBLISHED_CSV_URL,
+          hasError: true,
+          errorMessage: 'Os contatos profissionais não puderam ser carregados no momento.',
+        };
+
   return {
     jobs: normalizedJobs,
+    professionals,
     filters: {
       responsibles: uniqueSorted(normalizedJobs.map((job) => job.responsible)),
       statuses: uniqueSorted(normalizedJobs.map((job) => job.status)),
@@ -67,12 +97,12 @@ export async function fetchJobs() {
     meta: {
       sourceUrl,
       updatedAt: new Date(),
+      professionals: professionalsMeta,
     },
   };
 }
 
-async function fetchSheetRows() {
-  const sourceUrls = [PUBLISHED_CSV_URL, LEGACY_CSV_URL];
+async function fetchSheetRows(sourceUrls) {
   let lastError = null;
 
   for (const sourceUrl of sourceUrls) {
@@ -103,6 +133,30 @@ async function fetchSheetRows() {
   }
 
   throw lastError || new Error('Não foi possível carregar a planilha pública.');
+}
+
+function normalizeProfessionals(rows) {
+  const records = [];
+
+  rows.slice(3).forEach((row, index) => {
+    const area = cleanText(row[14]);
+    const name = cleanText(row[15]);
+    const contact = cleanText(row[16]);
+
+    if (!area && !name && !contact) {
+      return;
+    }
+
+    records.push({
+      id: `professional-${index + 4}-${slugify(`${area}-${name}-${contact}`)}`,
+      type: 'professional',
+      area: area || 'Área não informada',
+      name: name || 'Nome não informado',
+      contact,
+    });
+  });
+
+  return records;
 }
 
 function findHeaderIndex(rows) {
