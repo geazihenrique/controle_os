@@ -198,13 +198,22 @@ function applyFilters() {
     return matchesResponsible && matchesStatus && matchesServiceType;
   });
 
-  state.listJobs = filterOperationalJobs(state.calendarJobs);
-  state.listJobs = filterListJobsBySearch(state.listJobs, state.filters.search);
+  state.listJobs = buildListJobs(state.calendarJobs, state.filters.search);
 
   syncSelection();
   renderCalendar();
   renderList();
   renderDetail();
+}
+
+function buildListJobs(jobs, searchValue) {
+  const matchingJobs = filterListJobsBySearch(jobs, searchValue);
+
+  if (slugify(searchValue)) {
+    return matchingJobs;
+  }
+
+  return filterOperationalJobs(matchingJobs);
 }
 
 function filterOperationalJobs(jobs) {
@@ -220,14 +229,41 @@ function filterOperationalJobs(jobs) {
 }
 
 function filterListJobsBySearch(jobs, searchValue) {
-  const searchTerm = slugify(searchValue);
-  if (!searchTerm) {
+  const normalizedSearch = slugify(searchValue);
+  if (!normalizedSearch) {
     return jobs;
   }
 
-  return jobs.filter((job) =>
-    [job.os, job.client, job.description].some((field) => slugify(field).includes(searchTerm)),
-  );
+  const searchTerms = normalizedSearch.split(/\s+/).filter(Boolean);
+
+  return jobs.filter((job) => {
+    const searchableContent = buildJobSearchIndex(job);
+    return searchTerms.every((term) => searchableContent.includes(term));
+  });
+}
+
+function buildJobSearchIndex(job) {
+  return [
+    job.os,
+    `OS ${job.os}`,
+    job.client,
+    job.description,
+    job.shortDescription,
+    job.serviceType,
+    job.status,
+    job.logistics,
+    job.producer,
+    job.salesperson,
+    job.responsible,
+    job.observations,
+    job.location,
+    job.displayDateLabel,
+    job.deliveryDateLabel,
+    ...job.installers,
+  ]
+    .map((value) => slugify(value))
+    .filter(Boolean)
+    .join(' ');
 }
 
 function getTodayReference() {
