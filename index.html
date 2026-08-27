@@ -113,6 +113,19 @@
               <p>Ajuste os filtros ou atualize os dados para tentar novamente.</p>
             </div>
             <div id="os-list" class="os-list" role="listbox" aria-label="Lista de ordens de serviço"></div>
+            <div id="search-feedback" class="search-feedback" hidden aria-live="polite"></div>
+            <section
+              id="professional-results-section"
+              class="search-section professional-section"
+              hidden
+              aria-labelledby="professional-results-title"
+            >
+              <div class="search-section-head">
+                <h3 id="professional-results-title">Profissionais</h3>
+                <p id="professional-results-count" class="results-count"></p>
+              </div>
+              <div id="professional-results" class="professional-results"></div>
+            </section>
           </section>
         </div>
 
@@ -153,6 +166,6 @@
       </article>
     </template>
 
-    <script type="module" src="./app.js?v=20260827-search2"></script>
+    <script type="module" src="./app.js?v=20260827-search3"></script>
   </body>
 </html>
