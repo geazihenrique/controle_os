@@ -266,6 +266,35 @@ export function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+export function digitsOnly(value) {
+  return String(value ?? '').replace(/\D/g, '');
+}
+
+export function formatBrazilPhone(value) {
+  const originalValue = cleanText(value);
+  const digits = digitsOnly(originalValue);
+
+  if (digits.length === 11) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+
+  return originalValue;
+}
+
+export function toPhoneHref(value) {
+  const digits = digitsOnly(value);
+  if (digits.length < 10 || digits.length > 13) {
+    return '';
+  }
+
+  const internationalDigits = digits.length <= 11 ? `55${digits}` : digits;
+  return `tel:+${internationalDigits}`;
+}
+
 export function extractLocation(observations, description) {
   const observationText = cleanMultilineText(observations);
   if (observationText) {
