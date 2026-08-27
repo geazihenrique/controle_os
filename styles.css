@@ -438,6 +438,98 @@ img {
   gap: 14px;
 }
 
+.search-feedback {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px dashed rgba(110, 33, 215, 0.18);
+  background: rgba(248, 246, 252, 0.92);
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.search-section {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(110, 33, 215, 0.1);
+}
+
+.search-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.search-section-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.professional-results {
+  display: grid;
+  gap: 12px;
+}
+
+.professional-card {
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(110, 33, 215, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(246, 242, 252, 0.96));
+  box-shadow: 0 12px 28px rgba(110, 33, 215, 0.08);
+}
+
+.professional-card-head {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.professional-card-head h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.professional-meta {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.professional-meta div {
+  min-width: 0;
+}
+
+.professional-meta dt {
+  margin: 0 0 4px;
+  font-size: 0.77rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.professional-meta dd {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.professional-contact {
+  color: var(--accent-strong);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.professional-contact:hover,
+.professional-contact:focus-visible {
+  text-decoration: underline;
+}
+
 .os-card {
   width: 100%;
   padding: 18px;
@@ -752,6 +844,11 @@ img {
 
   .card-date-block {
     text-align: left;
+  }
+
+  .search-section-head {
+    align-items: start;
+    flex-direction: column;
   }
 }
 
